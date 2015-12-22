@@ -4,11 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "elm-server src/elm/PersonalSite.elm --output assets/js/elm.js --watch assets --start-path html/index.html"
+    "start": "elm-server src/elm/Main.elm --output assets/js/elm.js --watch assets --start-path html/index.html"
   },
   "author": "Max Gurewitz",
   "license": "MIT",
   "devDependencies": {
-    "elm-server": "0.1.0"
+    "elm-server": "0.2.0"
   }
 }
