@@ -34,7 +34,7 @@ update action model =
         newSubModels = Array.set n { count = newCount } model.subModels
 
         incrementNext =
-          sleep 1000
+          sleep (1000 * (Utils.subViewDecay n))
             `andThen`
               (\_ ->
                 if n + 1 == Array.length model.subModels
