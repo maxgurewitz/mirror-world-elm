@@ -10479,6 +10479,7 @@ Elm.App.Model.make = function (_elm) {
    _elm.App.Model = _elm.App.Model || {};
    if (_elm.App.Model.values) return _elm.App.Model.values;
    var _U = Elm.Native.Utils.make(_elm),
+   $Array = Elm.Array.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $List = Elm.List.make(_elm),
@@ -10486,9 +10487,11 @@ Elm.App.Model.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var initialModel = {count: 0};
-   var Model = function (a) {    return {count: a};};
-   return _elm.App.Model.values = {_op: _op,Model: Model,initialModel: initialModel};
+   var initialSubModel = {count: 0};
+   var initialModel = {subModels: $Array.fromList(_U.list([initialSubModel]))};
+   var Model = function (a) {    return {subModels: a};};
+   var SubModel = function (a) {    return {count: a};};
+   return _elm.App.Model.values = {_op: _op,SubModel: SubModel,Model: Model,initialSubModel: initialSubModel,initialModel: initialModel};
 };
 Elm.App = Elm.App || {};
 Elm.App.Update = Elm.App.Update || {};
@@ -10499,6 +10502,7 @@ Elm.App.Update.make = function (_elm) {
    if (_elm.App.Update.values) return _elm.App.Update.values;
    var _U = Elm.Native.Utils.make(_elm),
    $App$Model = Elm.App.Model.make(_elm),
+   $Array = Elm.Array.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $Effects = Elm.Effects.make(_elm),
@@ -10510,15 +10514,22 @@ Elm.App.Update.make = function (_elm) {
    var init = {ctor: "_Tuple2",_0: $App$Model.initialModel,_1: $Effects.none};
    var update = F2(function (action,model) {
       var _p0 = action;
-      if (_p0.ctor === "Increment") {
-            return {ctor: "_Tuple2",_0: _U.update(model,{count: model.count + 1}),_1: $Effects.none};
-         } else {
-            return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
-         }
+      switch (_p0.ctor)
+      {case "AddSubView": return {ctor: "_Tuple2"
+                                 ,_0: _U.update(model,{subModels: A2($Array.push,$App$Model.initialSubModel,model.subModels)})
+                                 ,_1: $Effects.none};
+         case "Increment": var _p1 = _p0._0;
+           var newCount = A2(F2(function (x,y) {    return x + y;}),
+           1,
+           A2($Maybe.withDefault,0,A2($Maybe.map,function (_) {    return _.count;},A2($Array.get,_p1,model.subModels))));
+           var newSubModels = A3($Array.set,_p1,{count: newCount},model.subModels);
+           return {ctor: "_Tuple2",_0: _U.update(model,{subModels: newSubModels}),_1: $Effects.none};
+         default: return {ctor: "_Tuple2",_0: model,_1: $Effects.none};}
    });
    var NoOp = {ctor: "NoOp"};
-   var Increment = {ctor: "Increment"};
-   return _elm.App.Update.values = {_op: _op,Increment: Increment,NoOp: NoOp,update: update,init: init};
+   var AddSubView = {ctor: "AddSubView"};
+   var Increment = function (a) {    return {ctor: "Increment",_0: a};};
+   return _elm.App.Update.values = {_op: _op,Increment: Increment,AddSubView: AddSubView,NoOp: NoOp,update: update,init: init};
 };
 Elm.App = Elm.App || {};
 Elm.App.View = Elm.App.View || {};
@@ -10530,6 +10541,7 @@ Elm.App.View.make = function (_elm) {
    var _U = Elm.Native.Utils.make(_elm),
    $App$Model = Elm.App.Model.make(_elm),
    $App$Update = Elm.App.Update.make(_elm),
+   $Array = Elm.Array.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $Html = Elm.Html.make(_elm),
@@ -10539,13 +10551,18 @@ Elm.App.View.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var view = F2(function (address,model) {
+   var subView = F3(function (address,index,subModel) {
       return A2($Html.div,
       _U.list([]),
-      _U.list([$Html.text($Basics.toString(model.count))
-              ,A2($Html.button,_U.list([A2($Html$Events.onClick,address,$App$Update.Increment)]),_U.list([$Html.text("Increment")]))]));
+      _U.list([$Html.text($Basics.toString(subModel.count))
+              ,A2($Html.button,_U.list([A2($Html$Events.onClick,address,$App$Update.Increment(index))]),_U.list([$Html.text("Increment")]))]));
    });
-   return _elm.App.View.values = {_op: _op,view: view};
+   var view = F2(function (address,model) {
+      var addSubViewButton = A2($Html.button,_U.list([A2($Html$Events.onClick,address,$App$Update.AddSubView)]),_U.list([$Html.text("Add Counter")]));
+      var subViews = $Array.toList(A2($Array.indexedMap,F2(function (index,subModel) {    return A3(subView,address,index,subModel);}),model.subModels));
+      return A2($Html.div,_U.list([]),A2($List._op["::"],addSubViewButton,subViews));
+   });
+   return _elm.App.View.values = {_op: _op,subView: subView,view: view};
 };
 Elm.Main = Elm.Main || {};
 Elm.Main.make = function (_elm) {
@@ -10557,13 +10574,16 @@ Elm.Main.make = function (_elm) {
    $App$View = Elm.App.View.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Debug = Elm.Debug.make(_elm),
+   $Effects = Elm.Effects.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
-   $StartApp = Elm.StartApp.make(_elm);
+   $StartApp = Elm.StartApp.make(_elm),
+   $Task = Elm.Task.make(_elm);
    var _op = {};
    var app = $StartApp.start({init: $App$Update.init,update: $App$Update.update,view: $App$View.view,inputs: _U.list([])});
    var main = app.html;
+   var worker = Elm.Native.Task.make(_elm).performSignal("worker",app.tasks);
    return _elm.Main.values = {_op: _op,app: app,main: main};
 };

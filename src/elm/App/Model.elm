@@ -1,8 +1,16 @@
 module App.Model where
 
-type alias Model =
+import Array exposing (Array, fromList)
+
+type alias SubModel =
   { count : Int }
+
+type alias Model =
+  { subModels : Array SubModel }
+
+initialSubModel : SubModel
+initialSubModel = { count = 0 }
 
 initialModel : Model
 initialModel =
-  { count = 0 }
+  { subModels = fromList [ initialSubModel ] }
