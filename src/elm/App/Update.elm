@@ -4,7 +4,7 @@ import Effects
 import App.Model exposing (Model, initialSubModel, initialModel)
 import Array
 import Debug
-import Task exposing (sleep, andThen)
+import Task exposing (sleep, andThen, succeed)
 
 type Action
   = Increment Int
@@ -26,16 +26,19 @@ update action model =
           |> (+) 1
 
         newSubModels = Array.set n { count = newCount } model.subModels
-        -- incrementNext =
-        --   sleep 1000
-        --   `andThen` (\j
 
-        -- effect =
-        --   if n == Array.length model.subModels
-        --   then Effects.none
-        --   else
+        incrementNext =
+          sleep 1000
+            `andThen`
+              (\_ ->
+                if n + 1 == Array.length model.subModels
+                then succeed NoOp
+                else succeed (Increment (n + 1))
+              )
+
+            |> Effects.task
       in
-        ({ model | subModels = newSubModels }, Effects.none)
+        ({ model | subModels = newSubModels }, incrementNext)
 
     NoOp -> (model, Effects.none)
 

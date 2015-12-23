@@ -10509,26 +10509,32 @@ Elm.App.Update.make = function (_elm) {
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
+   $Signal = Elm.Signal.make(_elm),
+   $Task = Elm.Task.make(_elm);
    var _op = {};
    var init = {ctor: "_Tuple2",_0: $App$Model.initialModel,_1: $Effects.none};
+   var NoOp = {ctor: "NoOp"};
+   var AddSubView = {ctor: "AddSubView"};
+   var Increment = function (a) {    return {ctor: "Increment",_0: a};};
    var update = F2(function (action,model) {
       var _p0 = action;
       switch (_p0.ctor)
       {case "AddSubView": return {ctor: "_Tuple2"
                                  ,_0: _U.update(model,{subModels: A2($Array.push,$App$Model.initialSubModel,model.subModels)})
                                  ,_1: $Effects.none};
-         case "Increment": var _p1 = _p0._0;
+         case "Increment": var _p2 = _p0._0;
+           var incrementNext = $Effects.task(A2($Task.andThen,
+           $Task.sleep(1000),
+           function (_p1) {
+              return _U.eq(_p2 + 1,$Array.length(model.subModels)) ? $Task.succeed(NoOp) : $Task.succeed(Increment(_p2 + 1));
+           }));
            var newCount = A2(F2(function (x,y) {    return x + y;}),
            1,
-           A2($Maybe.withDefault,0,A2($Maybe.map,function (_) {    return _.count;},A2($Array.get,_p1,model.subModels))));
-           var newSubModels = A3($Array.set,_p1,{count: newCount},model.subModels);
-           return {ctor: "_Tuple2",_0: _U.update(model,{subModels: newSubModels}),_1: $Effects.none};
+           A2($Maybe.withDefault,0,A2($Maybe.map,function (_) {    return _.count;},A2($Array.get,_p2,model.subModels))));
+           var newSubModels = A3($Array.set,_p2,{count: newCount},model.subModels);
+           return {ctor: "_Tuple2",_0: _U.update(model,{subModels: newSubModels}),_1: incrementNext};
          default: return {ctor: "_Tuple2",_0: model,_1: $Effects.none};}
    });
-   var NoOp = {ctor: "NoOp"};
-   var AddSubView = {ctor: "AddSubView"};
-   var Increment = function (a) {    return {ctor: "Increment",_0: a};};
    return _elm.App.Update.values = {_op: _op,Increment: Increment,AddSubView: AddSubView,NoOp: NoOp,update: update,init: init};
 };
 Elm.App = Elm.App || {};
