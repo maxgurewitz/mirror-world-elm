@@ -3,7 +3,7 @@ module App.Update where
 import Effects
 import App.Model exposing (Model, initialSubModel, initialModel)
 import Array
-import Debug
+import Utils
 import Task exposing (sleep, andThen, succeed)
 
 type Action
@@ -15,7 +15,13 @@ update : Action -> Model -> (Model, Effects.Effects Action)
 update action model =
   case action of
     AddSubView ->
-      ({ model | subModels = Array.push initialSubModel model.subModels }, Effects.none)
+      let
+        latestSubModel =
+          model.subModels
+          |> Utils.last
+          |> Maybe.withDefault initialSubModel
+      in
+        ({ model | subModels = Array.push latestSubModel model.subModels }, Effects.none)
 
     Increment n ->
       let

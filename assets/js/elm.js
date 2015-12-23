@@ -10493,6 +10493,23 @@ Elm.App.Model.make = function (_elm) {
    var SubModel = function (a) {    return {count: a};};
    return _elm.App.Model.values = {_op: _op,SubModel: SubModel,Model: Model,initialSubModel: initialSubModel,initialModel: initialModel};
 };
+Elm.Utils = Elm.Utils || {};
+Elm.Utils.make = function (_elm) {
+   "use strict";
+   _elm.Utils = _elm.Utils || {};
+   if (_elm.Utils.values) return _elm.Utils.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Array = Elm.Array.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var last = function (arr) {    return A2($Array.get,$Array.length(arr) - 1,arr);};
+   return _elm.Utils.values = {_op: _op,last: last};
+};
 Elm.App = Elm.App || {};
 Elm.App.Update = Elm.App.Update || {};
 Elm.App.Update.make = function (_elm) {
@@ -10510,7 +10527,8 @@ Elm.App.Update.make = function (_elm) {
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
-   $Task = Elm.Task.make(_elm);
+   $Task = Elm.Task.make(_elm),
+   $Utils = Elm.Utils.make(_elm);
    var _op = {};
    var init = {ctor: "_Tuple2",_0: $App$Model.initialModel,_1: $Effects.none};
    var NoOp = {ctor: "NoOp"};
@@ -10519,9 +10537,8 @@ Elm.App.Update.make = function (_elm) {
    var update = F2(function (action,model) {
       var _p0 = action;
       switch (_p0.ctor)
-      {case "AddSubView": return {ctor: "_Tuple2"
-                                 ,_0: _U.update(model,{subModels: A2($Array.push,$App$Model.initialSubModel,model.subModels)})
-                                 ,_1: $Effects.none};
+      {case "AddSubView": var latestSubModel = A2($Maybe.withDefault,$App$Model.initialSubModel,$Utils.last(model.subModels));
+           return {ctor: "_Tuple2",_0: _U.update(model,{subModels: A2($Array.push,latestSubModel,model.subModels)}),_1: $Effects.none};
          case "Increment": var _p2 = _p0._0;
            var incrementNext = $Effects.task(A2($Task.andThen,
            $Task.sleep(1000),
