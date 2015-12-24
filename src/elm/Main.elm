@@ -7,20 +7,21 @@ import App.Update
 import App.View exposing (view)
 import Effects
 import Task
-import StartApp
+import Start
+import Signal
+import Window
 
 app =
-  StartApp.start
+  Start.start
     { init = App.Update.init
     , update = App.Update.update
     , view = App.View.view
     , inputs = []
+    , inputsWithInit =
+        [ Signal.map App.Update.SetWindowDimensions Window.dimensions ]
     }
 
 main = app.html
 
 port worker : Signal (Task.Task Effects.Never ())
 port worker = app.tasks
-
--- sample app
--- https://github.com/elm-lang/package.elm-lang.org/tree/master/src/frontend

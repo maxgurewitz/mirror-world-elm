@@ -8,8 +8,11 @@ import Task exposing (sleep, andThen, succeed)
 
 type Action
   = Increment Int
+  | SetWindowDimensions (Int, Int)
   | AddSubView
   | NoOp
+
+getPositionMailbox = Signal.mailbox ""
 
 update : Action -> Model -> (Model, Effects.Effects Action)
 update action model =
@@ -46,7 +49,18 @@ update action model =
       in
         ({ model | subModels = newSubModels }, incrementNext)
 
+    SetWindowDimensions (x, y) ->
+      ({model | windowDimensions = (x, y) }, Effects.none)
+
     NoOp -> (model, Effects.none)
 
 init : (Model, Effects.Effects Action)
-init = (initialModel, Effects.none)
+init = (initialModel, Effects.tick (\_ -> NoOp))
+
+    -- FIXME
+    -- https://groups.google.com/forum/#!topic/elm-discuss/0d00KX0i3iU
+    -- SetPosition n -> (model, Effects.none)
+  -- let
+  --   a = 1
+  -- in
+  --   (initialModel, Effects.none)
