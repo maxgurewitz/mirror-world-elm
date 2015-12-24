@@ -37,7 +37,7 @@ update action model =
         newSubModels = Array.set n { count = newCount } model.subModels
 
         incrementNext =
-          sleep (1000 * (Utils.subViewDecay n))
+          sleep (2000 * (Utils.subViewDecay n))
             `andThen`
               (\_ ->
                 if n + 1 == Array.length model.subModels
@@ -56,11 +56,3 @@ update action model =
 
 init : (Model, Effects.Effects Action)
 init = (initialModel, Effects.tick (\_ -> NoOp))
-
-    -- FIXME
-    -- https://groups.google.com/forum/#!topic/elm-discuss/0d00KX0i3iU
-    -- SetPosition n -> (model, Effects.none)
-  -- let
-  --   a = 1
-  -- in
-  --   (initialModel, Effects.none)

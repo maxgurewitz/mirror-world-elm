@@ -7,4 +7,4 @@ last arr =
 
 subViewDecay : Int -> Float
 subViewDecay index =
-  e ^ -(toFloat index/7)
+  e ^ -(toFloat index/3)

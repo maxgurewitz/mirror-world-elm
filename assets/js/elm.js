@@ -10928,7 +10928,7 @@ Elm.Utils.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var subViewDecay = function (index) {    return Math.pow($Basics.e,0 - $Basics.toFloat(index) / 7);};
+   var subViewDecay = function (index) {    return Math.pow($Basics.e,0 - $Basics.toFloat(index) / 3);};
    var last = function (arr) {    return A2($Array.get,$Array.length(arr) - 1,arr);};
    return _elm.Utils.values = {_op: _op,last: last,subViewDecay: subViewDecay};
 };
@@ -10965,7 +10965,7 @@ Elm.App.Update.make = function (_elm) {
            return {ctor: "_Tuple2",_0: _U.update(model,{subModels: A2($Array.push,latestSubModel,model.subModels)}),_1: $Effects.none};
          case "Increment": var _p3 = _p1._0;
            var incrementNext = $Effects.task(A2($Task.andThen,
-           $Task.sleep(1000 * $Utils.subViewDecay(_p3)),
+           $Task.sleep(2000 * $Utils.subViewDecay(_p3)),
            function (_p2) {
               return _U.eq(_p3 + 1,$Array.length(model.subModels)) ? $Task.succeed(NoOp) : $Task.succeed(Increment(_p3 + 1));
            }));
