@@ -11075,7 +11075,6 @@ Elm.App.View.make = function (_elm) {
       return _U.eq(index,0) ? A2($List._op["::"],attribute,defaultAttributes) : defaultAttributes;
    });
    var fontProportion = 1 / 20;
-   var mouseOffset = 5;
    var subView = F3(function (address,index,model) {
       var subViewWidth = function (_p0) {
          return A3($Basics.flip,F2(function (x,y) {    return A2($Basics._op["++"],x,y);}),"px",$Basics.toString(_p0));
@@ -11083,49 +11082,54 @@ Elm.App.View.make = function (_elm) {
       var subViewHeight = function (_p1) {
          return A3($Basics.flip,F2(function (x,y) {    return A2($Basics._op["++"],x,y);}),"em",$Basics.toString(_p1));
       }(1 / fontProportion);
-      var incrementButton = A2($Html.a,
-      A3(propIfFirstSubView,
-      A2($Html$Events.onClick,address,A2($App$Update.SubViewAction,index,$App$Update.Increment)),
-      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "border",_1: "1px black solid"}]))]),
-      index),
-      _U.list([$Html.text("Increment")]));
+      var decay = $Utils.subViewDecay(index);
+      var fontSize = $Basics.toFloat($Basics.snd(model.windowDimensions)) * fontProportion * decay;
+      var pointerBorderSize = fontSize;
+      var pointerBorder = A2($Basics._op["++"],$Basics.toString(pointerBorderSize),"px green solid");
+      var pointerBorderDiameter = A2($Basics._op["++"],$Basics.toString(2 * pointerBorderSize),"px");
+      var mouseOffset = pointerBorderSize * 2;
+      var subModel = A2($Maybe.withDefault,$App$Model.initialSubModel,A2($Array.get,index,model.subModels));
+      var mouseLeftBase = $Basics.toFloat($Basics.fst(model.windowDimensions)) - $Basics.toFloat($Basics.fst(subModel.mousePosition)) - pointerBorderSize;
+      var mouseLeft = A3($Basics.flip,F2(function (x,y) {    return A2($Basics._op["++"],x,y);}),"px",$Basics.toString(mouseLeftBase * decay));
+      var mouseTopBase = $Basics.toFloat($Basics.snd(model.windowDimensions)) - $Basics.toFloat($Basics.snd(subModel.mousePosition)) - pointerBorderSize;
+      var mouseTop = A3($Basics.flip,F2(function (x,y) {    return A2($Basics._op["++"],x,y);}),"px",$Basics.toString(mouseTopBase * decay));
+      var zIndex = 10 * index + 5;
+      var zIndexStyle = {ctor: "_Tuple2",_0: "z-index",_1: $Basics.toString(zIndex)};
       var addSubViewButton = A2($Html.a,
       A3(propIfFirstSubView,
       A2($Html$Events.onClick,address,$App$Update.AddSubView),
-      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "border",_1: "1px black solid"}]))]),
+      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "border",_1: "1px black solid"}
+                                              ,{ctor: "_Tuple2",_0: "position",_1: "relative"}
+                                              ,zIndexStyle]))]),
       index),
       _U.list([$Html.text("Add Counter")]));
-      var decay = $Utils.subViewDecay(index);
-      var fontSize = $Basics.toFloat($Basics.snd(model.windowDimensions)) * fontProportion * decay;
-      var pointerBorder = A2($Basics._op["++"],$Basics.toString(fontSize / 3),"px green solid");
-      var subModel = A2($Maybe.withDefault,$App$Model.initialSubModel,A2($Array.get,index,model.subModels));
-      var mouseLeftBase = $Basics.toFloat($Basics.fst(model.windowDimensions)) - $Basics.toFloat($Basics.fst(subModel.mousePosition)) - mouseOffset;
-      var mouseLeft = A3($Basics.flip,F2(function (x,y) {    return A2($Basics._op["++"],x,y);}),"px",$Basics.toString(mouseLeftBase * decay));
-      var mouseTopBase = $Basics.toFloat($Basics.snd(model.windowDimensions)) - $Basics.toFloat($Basics.snd(subModel.mousePosition)) - mouseOffset;
-      var mouseTop = A3($Basics.flip,F2(function (x,y) {    return A2($Basics._op["++"],x,y);}),"px",$Basics.toString(mouseTopBase * decay));
+      var incrementButton = A2($Html.a,
+      A3(propIfFirstSubView,
+      A2($Html$Events.onClick,address,A2($App$Update.SubViewAction,index,$App$Update.Increment)),
+      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "border",_1: "1px black solid"}
+                                              ,{ctor: "_Tuple2",_0: "position",_1: "relative"}
+                                              ,zIndexStyle]))]),
+      index),
+      _U.list([$Html.text("Increment")]));
       var defaultSubViewContents = _U.list([addSubViewButton
                                            ,A2($Html.br,_U.list([]),_U.list([]))
                                            ,$Html.text($Basics.toString(subModel.count))
                                            ,incrementButton]);
-      var zIndexStyle = {ctor: "_Tuple2",_0: "z-index",_1: $Basics.toString(10 * index)};
+      var mouseTrackerZIndexStyle = {ctor: "_Tuple2",_0: "z-index",_1: $Basics.toString(zIndex - 2)};
       var mouseTracker = A2($Html.div,
-      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "width",_1: "1px"}
-                                              ,{ctor: "_Tuple2",_0: "height",_1: "1px"}
+      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "width",_1: pointerBorderDiameter}
+                                              ,{ctor: "_Tuple2",_0: "height",_1: pointerBorderDiameter}
                                               ,{ctor: "_Tuple2",_0: "position",_1: "absolute"}
                                               ,{ctor: "_Tuple2",_0: "bottom",_1: mouseTop}
                                               ,{ctor: "_Tuple2",_0: "right",_1: mouseLeft}
-                                              ,zIndexStyle]))]),
+                                              ,mouseTrackerZIndexStyle]))]),
       _U.list([A2($Html.div,
       _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "border-radius",_1: "100%"}
                                               ,{ctor: "_Tuple2",_0: "border",_1: pointerBorder}
-                                              ,{ctor: "_Tuple2",_0: "width",_1: "1px"}
-                                              ,{ctor: "_Tuple2",_0: "height",_1: "1px"}
-                                              ,zIndexStyle]))]),
+                                              ,mouseTrackerZIndexStyle]))]),
       _U.list([]))]));
-      var subViewContents = _U.cmp(mouseTopBase,Math.pow(mouseOffset,2)) > 0 && (_U.cmp(mouseLeftBase,
-      Math.pow(mouseOffset,2) * mouseOffset) > 0 && !_U.eq(subModel.mousePosition,{ctor: "_Tuple2",_0: 0,_1: 0})) ? A2($Basics._op["++"],
-      defaultSubViewContents,
-      _U.list([mouseTracker])) : defaultSubViewContents;
+      var subViewContents = _U.cmp(mouseTopBase,0) > 0 && (_U.cmp(mouseLeftBase,0) > 0 && !_U.eq(subModel.mousePosition,
+      {ctor: "_Tuple2",_0: 0,_1: 0})) ? A2($Basics._op["++"],defaultSubViewContents,_U.list([mouseTracker])) : defaultSubViewContents;
       return A2($Html.div,
       _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "width",_1: subViewWidth}
                                               ,{ctor: "_Tuple2",_0: "position",_1: "absolute"}
@@ -11143,12 +11147,7 @@ Elm.App.View.make = function (_elm) {
       var subViews = $Array.toList(A2($Array.indexedMap,F2(function (index,_p2) {    return A3(subView,address,index,model);}),model.subModels));
       return A2($Html.div,_U.list([]),subViews);
    });
-   return _elm.App.View.values = {_op: _op
-                                 ,mouseOffset: mouseOffset
-                                 ,fontProportion: fontProportion
-                                 ,propIfFirstSubView: propIfFirstSubView
-                                 ,subView: subView
-                                 ,view: view};
+   return _elm.App.View.values = {_op: _op,fontProportion: fontProportion,propIfFirstSubView: propIfFirstSubView,subView: subView,view: view};
 };
 Elm.Start = Elm.Start || {};
 Elm.Start.make = function (_elm) {

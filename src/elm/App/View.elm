@@ -10,8 +10,6 @@ import Array
 import Debug
 import Utils
 
-
-mouseOffset = 5
 fontProportion = 1 / 20
 
 propIfFirstSubView : Attribute -> List Attribute -> Int -> List Attribute
@@ -23,7 +21,9 @@ propIfFirstSubView attribute defaultAttributes index =
 subView : Signal.Address Action -> Int -> Model -> Html
 subView address index model =
   let
-    zIndexStyle = ("z-index", 10 * index |> toString)
+    zIndex = 10 * index + 5
+    zIndexStyle = ("z-index", zIndex |> toString)
+
     subModel =
       Array.get index model.subModels
         |> Maybe.withDefault initialSubModel
@@ -36,7 +36,12 @@ subView address index model =
       a
         (propIfFirstSubView
           (onClick address Update.AddSubView)
-          [ style [ ("border", "1px black solid") ] ]
+          [ style
+              [ ("border", "1px black solid")
+              , ("position", "relative")
+              , zIndexStyle
+              ]
+          ]
           index
         )
         [ text "Add Counter" ]
@@ -45,7 +50,12 @@ subView address index model =
       a
         (propIfFirstSubView
           (onClick address (Update.SubViewAction index Update.Increment))
-          [ style [ ("border", "1px black solid") ] ]
+          [ style
+              [ ("border", "1px black solid")
+              , ("position", "relative")
+              , zIndexStyle
+              ]
+          ]
           index
         )
         [ text "Increment" ]
@@ -54,38 +64,42 @@ subView address index model =
       1 / fontProportion
       |> toString >> (flip (++)) "em"
 
-    mouseLeftBase = ((fst model.windowDimensions |> toFloat) - (fst subModel.mousePosition |> toFloat) - mouseOffset)
+    pointerBorderSize = fontSize
+    pointerBorder = toString pointerBorderSize ++ "px green solid"
+    pointerBorderDiameter = toString (2 * pointerBorderSize) ++ "px"
+
+    mouseOffset = pointerBorderSize * 2
+
+    mouseLeftBase = ((fst model.windowDimensions |> toFloat) - (fst subModel.mousePosition |> toFloat) - pointerBorderSize)
     mouseLeft =
       mouseLeftBase * decay
       |> toString
       |> (flip (++)) "px"
 
-    mouseTopBase = ((snd model.windowDimensions |> toFloat) - (snd subModel.mousePosition |> toFloat) - mouseOffset)
+    mouseTopBase = ((snd model.windowDimensions |> toFloat) - (snd subModel.mousePosition |> toFloat) - pointerBorderSize)
     mouseTop =
       mouseTopBase * decay
       |> toString
       |> (flip (++)) "px"
 
-    pointerBorder = (fontSize / 3 |> toString) ++ "px green solid"
+    mouseTrackerZIndexStyle = ("z-index", zIndex - 2 |> toString)
 
     mouseTracker =
       div
         [ style
-            [ ("width", "1px")
-            , ("height", "1px")
+            [ ("width", pointerBorderDiameter)
+            , ("height", pointerBorderDiameter)
             , ("position", "absolute")
             , ("bottom", mouseTop)
             , ("right", mouseLeft)
-            , zIndexStyle
+            , mouseTrackerZIndexStyle
             ]
         ]
         [ div
             [ style
                 [ ("border-radius", "100%")
                 , ("border", pointerBorder)
-                , ("width", "1px")
-                , ("height", "1px")
-                , zIndexStyle
+                , mouseTrackerZIndexStyle
                 ]
             ]
             []
@@ -106,7 +120,7 @@ subView address index model =
       ]
 
     subViewContents =
-      if mouseTopBase > mouseOffset ^ 2 && mouseLeftBase > mouseOffset ^ 2 * mouseOffset && (subModel.mousePosition /= (0, 0))
+      if mouseTopBase > 0 && mouseLeftBase > 0 && (subModel.mousePosition /= (0, 0))
       then defaultSubViewContents ++ [mouseTracker]
       else defaultSubViewContents
 
