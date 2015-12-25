@@ -11,6 +11,16 @@ import Signal
 import Window
 import Mouse
 
+setWindowDimensions =
+  Signal.map
+    App.Update.SetWindowDimensions
+    Window.dimensions
+
+setMousePositions =
+  Signal.map
+    (App.Update.SetMousePosition 0)
+    Mouse.position
+
 app =
   Start.start
     { init = App.Update.init
@@ -18,8 +28,8 @@ app =
     , view = App.View.view
     , inputs = []
     , inputsWithInit =
-        [ Signal.map App.Update.SetWindowDimensions Window.dimensions
-        , Signal.map (\position -> App.Update.SetMousePosition 0 position) Mouse.position
+        [ setWindowDimensions
+        , setMousePositions
         ]
     }
 
