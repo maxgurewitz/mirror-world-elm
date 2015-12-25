@@ -7,24 +7,66 @@ import Utils
 import Task exposing (sleep, andThen, succeed)
 import Debug
 
-type Action
-  = Increment Int
-  | SetWindowDimensions (Int, Int)
-  | SetMousePosition Int (Int, Int)
+type Action =
+  SetWindowDimensions (Int, Int)
+  | SubViewAction Int SubViewUpdate
   | AddSubView
   | NoOp
 
-delayedAction : Action -> Array.Array SubModel -> Int -> Effects.Effects Action
-delayedAction action subModels index =
+type SubViewUpdate =
+  Increment
+  | SetMousePosition (Int, Int)
+  | NoSubViewUpdate
+
+delayedSubViewUpdate : SubViewUpdate -> Array.Array SubModel -> Int -> Effects.Effects Action
+delayedSubViewUpdate update subModels index =
   sleep (2000 * (Utils.subViewDecay index))
     `andThen`
       (\_ ->
-        if index + 1 == Array.length subModels
-        then succeed NoOp
-        else succeed action
+        let
+          boundedSubViewUpdate =
+            if index + 1 == Array.length subModels
+            then NoSubViewUpdate
+            else update
+
+          boundedSubViewAction = SubViewAction (index + 1) boundedSubViewUpdate
+        in
+           succeed boundedSubViewAction
       )
 
     |> Effects.task
+
+
+updateSubView : Int -> SubViewUpdate -> Model -> (Model, Effects.Effects Action)
+updateSubView n action model =
+  let
+    currentSubModel =
+      Array.get n model.subModels
+      |> Maybe.withDefault initialSubModel
+  in
+    case action of
+      Increment ->
+        let
+          newSubModel = { currentSubModel | count = currentSubModel.count + 1 }
+          newSubModels = Array.set n newSubModel model.subModels
+
+          incrementNext =
+            delayedSubViewUpdate Increment model.subModels n
+        in
+          ({ model | subModels = newSubModels }, incrementNext)
+
+      SetMousePosition (x, y) ->
+        let
+          newSubModel = { currentSubModel | mousePosition = (x, y) }
+          newSubModels = Array.set n newSubModel model.subModels
+
+          setMousePositionOnNext =
+            delayedSubViewUpdate (SetMousePosition (x, y)) model.subModels n
+        in
+          ({ model | subModels = newSubModels }, setMousePositionOnNext)
+
+      NoSubViewUpdate -> (model, Effects.none)
+
 
 update : Action -> Model -> (Model, Effects.Effects Action)
 update action model =
@@ -40,34 +82,11 @@ update action model =
       in
         ({ model | subModels = newSubModels }, Effects.none)
 
-    Increment n ->
-      let
-        currentSubModel =
-          Array.get n model.subModels
-          |> Maybe.withDefault initialSubModel
-
-        newSubModel = { currentSubModel | count = currentSubModel.count + 1 }
-        newSubModels = Array.set n newSubModel model.subModels
-        incrementNext =
-          delayedAction (Increment (n + 1)) model.subModels n
-      in
-        ({ model | subModels = newSubModels }, incrementNext)
+    SubViewAction n subViewUpdate ->
+      updateSubView n subViewUpdate model
 
     SetWindowDimensions (x, y) ->
       ({model | windowDimensions = (x, y) }, Effects.none)
-
-    SetMousePosition n (x, y) ->
-      let
-        currentSubModel =
-          Array.get n model.subModels
-          |> Maybe.withDefault initialSubModel
-
-        newSubModel = { currentSubModel | mousePosition = (x, y) }
-        newSubModels = Array.set n newSubModel model.subModels
-        setMousePositionOnNext =
-          delayedAction (SetMousePosition (n + 1) (x, y)) model.subModels n
-      in
-        ({ model | subModels = newSubModels }, setMousePositionOnNext)
 
     NoOp -> (model, Effects.none)
 

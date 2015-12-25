@@ -2,8 +2,8 @@ module Main where
 
 import Html exposing (..)
 
-import App.Update
-import App.View exposing (view)
+import App.Update as Up
+import App.View
 import Effects
 import Task
 import Start
@@ -13,18 +13,18 @@ import Mouse
 
 setWindowDimensions =
   Signal.map
-    App.Update.SetWindowDimensions
+    Up.SetWindowDimensions
     Window.dimensions
 
 setMousePositions =
   Signal.map
-    (App.Update.SetMousePosition 0)
+    (\position -> Up.SubViewAction 0 (Up.SetMousePosition position))
     Mouse.position
 
 app =
   Start.start
-    { init = App.Update.init
-    , update = App.Update.update
+    { init = Up.init
+    , update = Up.update
     , view = App.View.view
     , inputs = []
     , inputsWithInit =

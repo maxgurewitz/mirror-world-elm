@@ -10991,51 +10991,61 @@ Elm.App.Update.make = function (_elm) {
    $Task = Elm.Task.make(_elm),
    $Utils = Elm.Utils.make(_elm);
    var _op = {};
+   var NoSubViewUpdate = {ctor: "NoSubViewUpdate"};
+   var SetMousePosition = function (a) {    return {ctor: "SetMousePosition",_0: a};};
+   var Increment = {ctor: "Increment"};
    var NoOp = {ctor: "NoOp"};
-   var delayedAction = F3(function (action,subModels,index) {
+   var init = {ctor: "_Tuple2",_0: $App$Model.initialModel,_1: $Effects.tick(function (_p0) {    return NoOp;})};
+   var AddSubView = {ctor: "AddSubView"};
+   var SubViewAction = F2(function (a,b) {    return {ctor: "SubViewAction",_0: a,_1: b};});
+   var delayedSubViewUpdate = F3(function (update,subModels,index) {
       return $Effects.task(A2($Task.andThen,
       $Task.sleep(2000 * $Utils.subViewDecay(index)),
-      function (_p0) {
-         return _U.eq(index + 1,$Array.length(subModels)) ? $Task.succeed(NoOp) : $Task.succeed(action);
+      function (_p1) {
+         var boundedSubViewUpdate = _U.eq(index + 1,$Array.length(subModels)) ? NoSubViewUpdate : update;
+         var boundedSubViewAction = A2(SubViewAction,index + 1,boundedSubViewUpdate);
+         return $Task.succeed(boundedSubViewAction);
       }));
    });
-   var init = {ctor: "_Tuple2",_0: $App$Model.initialModel,_1: $Effects.tick(function (_p1) {    return NoOp;})};
-   var AddSubView = {ctor: "AddSubView"};
-   var SetMousePosition = F2(function (a,b) {    return {ctor: "SetMousePosition",_0: a,_1: b};});
-   var SetWindowDimensions = function (a) {    return {ctor: "SetWindowDimensions",_0: a};};
-   var Increment = function (a) {    return {ctor: "Increment",_0: a};};
-   var update = F2(function (action,model) {
+   var updateSubView = F3(function (n,action,model) {
+      var currentSubModel = A2($Maybe.withDefault,$App$Model.initialSubModel,A2($Array.get,n,model.subModels));
       var _p2 = action;
       switch (_p2.ctor)
-      {case "AddSubView": var latestSubModel = A2($Maybe.withDefault,$App$Model.initialSubModel,$Utils.last(model.subModels));
-           var newSubModels = A2($Array.push,latestSubModel,model.subModels);
-           return {ctor: "_Tuple2",_0: _U.update(model,{subModels: newSubModels}),_1: $Effects.none};
-         case "Increment": var _p3 = _p2._0;
-           var incrementNext = A3(delayedAction,Increment(_p3 + 1),model.subModels,_p3);
-           var currentSubModel = A2($Maybe.withDefault,$App$Model.initialSubModel,A2($Array.get,_p3,model.subModels));
+      {case "Increment": var incrementNext = A3(delayedSubViewUpdate,Increment,model.subModels,n);
            var newSubModel = _U.update(currentSubModel,{count: currentSubModel.count + 1});
-           var newSubModels = A3($Array.set,_p3,newSubModel,model.subModels);
+           var newSubModels = A3($Array.set,n,newSubModel,model.subModels);
            return {ctor: "_Tuple2",_0: _U.update(model,{subModels: newSubModels}),_1: incrementNext};
-         case "SetWindowDimensions": return {ctor: "_Tuple2"
-                                            ,_0: _U.update(model,{windowDimensions: {ctor: "_Tuple2",_0: _p2._0._0,_1: _p2._0._1}})
-                                            ,_1: $Effects.none};
-         case "SetMousePosition": var _p6 = _p2._1._1;
-           var _p5 = _p2._1._0;
-           var _p4 = _p2._0;
-           var setMousePositionOnNext = A3(delayedAction,A2(SetMousePosition,_p4 + 1,{ctor: "_Tuple2",_0: _p5,_1: _p6}),model.subModels,_p4);
-           var currentSubModel = A2($Maybe.withDefault,$App$Model.initialSubModel,A2($Array.get,_p4,model.subModels));
-           var newSubModel = _U.update(currentSubModel,{mousePosition: {ctor: "_Tuple2",_0: _p5,_1: _p6}});
-           var newSubModels = A3($Array.set,_p4,newSubModel,model.subModels);
+         case "SetMousePosition": var _p4 = _p2._0._1;
+           var _p3 = _p2._0._0;
+           var setMousePositionOnNext = A3(delayedSubViewUpdate,SetMousePosition({ctor: "_Tuple2",_0: _p3,_1: _p4}),model.subModels,n);
+           var newSubModel = _U.update(currentSubModel,{mousePosition: {ctor: "_Tuple2",_0: _p3,_1: _p4}});
+           var newSubModels = A3($Array.set,n,newSubModel,model.subModels);
            return {ctor: "_Tuple2",_0: _U.update(model,{subModels: newSubModels}),_1: setMousePositionOnNext};
          default: return {ctor: "_Tuple2",_0: model,_1: $Effects.none};}
    });
+   var update = F2(function (action,model) {
+      var _p5 = action;
+      switch (_p5.ctor)
+      {case "AddSubView": var latestSubModel = A2($Maybe.withDefault,$App$Model.initialSubModel,$Utils.last(model.subModels));
+           var newSubModels = A2($Array.push,latestSubModel,model.subModels);
+           return {ctor: "_Tuple2",_0: _U.update(model,{subModels: newSubModels}),_1: $Effects.none};
+         case "SubViewAction": return A3(updateSubView,_p5._0,_p5._1,model);
+         case "SetWindowDimensions": return {ctor: "_Tuple2"
+                                            ,_0: _U.update(model,{windowDimensions: {ctor: "_Tuple2",_0: _p5._0._0,_1: _p5._0._1}})
+                                            ,_1: $Effects.none};
+         default: return {ctor: "_Tuple2",_0: model,_1: $Effects.none};}
+   });
+   var SetWindowDimensions = function (a) {    return {ctor: "SetWindowDimensions",_0: a};};
    return _elm.App.Update.values = {_op: _op
-                                   ,Increment: Increment
                                    ,SetWindowDimensions: SetWindowDimensions
-                                   ,SetMousePosition: SetMousePosition
+                                   ,SubViewAction: SubViewAction
                                    ,AddSubView: AddSubView
                                    ,NoOp: NoOp
-                                   ,delayedAction: delayedAction
+                                   ,Increment: Increment
+                                   ,SetMousePosition: SetMousePosition
+                                   ,NoSubViewUpdate: NoSubViewUpdate
+                                   ,delayedSubViewUpdate: delayedSubViewUpdate
+                                   ,updateSubView: updateSubView
                                    ,update: update
                                    ,init: init};
 };
@@ -11068,7 +11078,7 @@ Elm.App.View.make = function (_elm) {
       var mouseOffset = 5;
       var incrementButton = A2($Html.a,
       _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "border",_1: "1px black solid"}]))
-              ,A2($Html$Events.onClick,address,$App$Update.Increment(index))]),
+              ,A2($Html$Events.onClick,address,A2($App$Update.SubViewAction,index,$App$Update.Increment))]),
       _U.list([$Html.text("Increment")]));
       var addSubViewButton = A2($Html.a,
       _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "border",_1: "1px black solid"}]))
@@ -11198,17 +11208,18 @@ Elm.Main.make = function (_elm) {
    $Task = Elm.Task.make(_elm),
    $Window = Elm.Window.make(_elm);
    var _op = {};
+   var setMousePositions = A2($Signal.map,
+   function (position) {
+      return A2($App$Update.SubViewAction,0,$App$Update.SetMousePosition(position));
+   },
+   $Mouse.position);
+   var setWindowDimensions = A2($Signal.map,$App$Update.SetWindowDimensions,$Window.dimensions);
    var app = $Start.start({init: $App$Update.init
                           ,update: $App$Update.update
                           ,view: $App$View.view
                           ,inputs: _U.list([])
-                          ,inputsWithInit: _U.list([A2($Signal.map,$App$Update.SetWindowDimensions,$Window.dimensions)
-                                                   ,A2($Signal.map,
-                                                   function (position) {
-                                                      return A2($App$Update.SetMousePosition,0,position);
-                                                   },
-                                                   $Mouse.position)])});
+                          ,inputsWithInit: _U.list([setWindowDimensions,setMousePositions])});
    var main = app.html;
    var worker = Elm.Native.Task.make(_elm).performSignal("worker",app.tasks);
-   return _elm.Main.values = {_op: _op,app: app,main: main};
+   return _elm.Main.values = {_op: _op,setWindowDimensions: setWindowDimensions,setMousePositions: setMousePositions,app: app,main: main};
 };

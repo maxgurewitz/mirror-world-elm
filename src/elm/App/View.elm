@@ -35,7 +35,7 @@ subView address index model =
       a
         [ style
           [ ("border", "1px black solid") ]
-        , onClick address (Update.Increment index)
+        , onClick address (Update.SubViewAction index Update.Increment)
         ]
         [ text "Increment" ]
 
