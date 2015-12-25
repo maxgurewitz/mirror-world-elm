@@ -40,10 +40,14 @@ constructBoxShadow decay =
       |> String.join " "
 
     boxShadow =
-      primaryShadowDepths
-        |> Utils.prepend " rgba(0, 0, 0, 0.2), "
-        |> Utils.prepend secondaryShadowDepths
-        |> Utils.prepend " rgba(0, 0, 0, 0.19)"
+      [ "inset "
+      , primaryShadowDepths
+      , " rgba(0, 0, 0, 0.2), "
+      , "inset "
+      , secondaryShadowDepths
+      , " rgba(0, 0, 0, 0.19)"
+      ]
+      |> String.join ""
   in
     ( "box-shadow", boxShadow)
 
