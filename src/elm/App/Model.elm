@@ -4,6 +4,7 @@ import Array exposing (Array, fromList)
 
 type alias SubModel =
   { count : Int
+  , mousePosition : (Int, Int)
   }
 
 type alias Model =
@@ -12,7 +13,10 @@ type alias Model =
   }
 
 initialSubModel : SubModel
-initialSubModel = { count = 0 }
+initialSubModel =
+  { count = 0
+  , mousePosition = (0, 0)
+  }
 
 initialModel : Model
 initialModel =

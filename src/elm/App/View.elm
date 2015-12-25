@@ -7,34 +7,80 @@ import Signal
 import App.Update as Update exposing (Action)
 import App.Model exposing (Model, SubModel, initialSubModel)
 import Array
+import Debug
 import Utils
 
 subView : Signal.Address Action -> Int -> Model -> Html
 subView address index model =
   let
+    zIndexStyle = ("z-index", 10 * index |> toString)
     subModel =
       Array.get index model.subModels
         |> Maybe.withDefault initialSubModel
 
     fontProportion = 1 / 20
+    decay = Utils.subViewDecay index
     fontSize =
-      (snd model.windowDimensions |> toFloat) * fontProportion * Utils.subViewDecay index
+      (snd model.windowDimensions |> toFloat) * fontProportion * decay
 
     addSubViewButton =
       a
-        [ onClick address Update.AddSubView ]
+        [ style
+            [ ("border", "1px black solid") ]
+        , onClick address Update.AddSubView
+        ]
         [ text "Add Counter" ]
 
     incrementButton =
       a
-        [ onClick address (Update.Increment index) ]
+        [ style
+          [ ("border", "1px black solid") ]
+        , onClick address (Update.Increment index)
+        ]
         [ text "Increment" ]
-
-    appendEm = toString >> (flip (++)) "em"
 
     subViewHeight =
       1 / fontProportion
       |> toString >> (flip (++)) "em"
+
+    mouseOffset = 5
+
+    mouseLeftBase = ((fst model.windowDimensions |> toFloat) - (fst subModel.mousePosition |> toFloat) - mouseOffset)
+    mouseLeft =
+      mouseLeftBase * decay
+      |> toString
+      |> (flip (++)) "px"
+
+    mouseTopBase = ((snd model.windowDimensions |> toFloat) - (snd subModel.mousePosition |> toFloat) - mouseOffset)
+    mouseTop =
+      mouseTopBase * decay
+      |> toString
+      |> (flip (++)) "px"
+
+    pointerBorder = (fontSize / 3 |> toString) ++ "px green solid"
+
+    mouseTracker =
+      div
+        [ style
+            [ ("width", "1px")
+            , ("height", "1px")
+            , ("position", "absolute")
+            , ("bottom", mouseTop)
+            , ("right", mouseLeft)
+            , zIndexStyle
+            ]
+        ]
+        [ div
+            [ style
+                [ ("border-radius", "100%")
+                , ("border", pointerBorder)
+                , ("width", "1px")
+                , ("height", "1px")
+                , zIndexStyle
+                ]
+            ]
+            []
+        ]
 
     subViewWidth =
       model.windowDimensions
@@ -42,6 +88,18 @@ subView address index model =
       |> toFloat
       |> (*) (Utils.subViewDecay index)
       |> toString >> (flip (++)) "px"
+
+    defaultSubViewContents =
+      [ addSubViewButton
+      , br [] []
+      , text (toString subModel.count)
+      , incrementButton
+      ]
+
+    subViewContents =
+      if mouseTopBase > mouseOffset ^ 2 && mouseLeftBase > mouseOffset ^ 2 * mouseOffset && (subModel.mousePosition /= (0, 0))
+      then defaultSubViewContents ++ [mouseTracker]
+      else defaultSubViewContents
 
   in
     div
@@ -54,13 +112,11 @@ subView address index model =
           , ("font-size", (toString fontSize) ++ "px")
           , ("margin", "0 auto")
           , ("border", "1px solid black")
+          , ("background-color", "white")
+          , zIndexStyle
           ]
       ]
-      [ addSubViewButton
-      , br [] []
-      , text (toString subModel.count)
-      , incrementButton
-      ]
+      subViewContents
 
 view : Signal.Address Action -> Model -> Html
 view address model =

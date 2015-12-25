@@ -84,12 +84,16 @@ start config =
         updateStart actions =
             List.foldl updateStep config.init (List.filter fst actions)
 
+        inputsByInit : Bool -> List (Signal action) -> List (Signal (List ( Bool, action) ))
+        inputsByInit init inputs
+          = List.map (Signal.map (singleton << (,) init)) inputs
+
         -- allInputs : Signal (List (Bool, action))
         allInputs =
           List.foldl
             (Signal.Extra.fairMerge List.append)
             (Signal.map (List.map ((,) False)) messages.signal)
-            (List.map (Signal.map (singleton << (,) False)) config.inputs ++ List.map (Signal.map (singleton << (,) True)) config.inputsWithInit)
+            ((inputsByInit False config.inputs) ++ (inputsByInit True config.inputsWithInit))
 
 
 

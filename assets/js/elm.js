@@ -8441,6 +8441,63 @@ Elm.Json.Decode.make = function (_elm) {
                                     ,customDecoder: customDecoder};
 };
 Elm.Native = Elm.Native || {};
+Elm.Native.Mouse = {};
+Elm.Native.Mouse.make = function(localRuntime) {
+	localRuntime.Native = localRuntime.Native || {};
+	localRuntime.Native.Mouse = localRuntime.Native.Mouse || {};
+	if (localRuntime.Native.Mouse.values)
+	{
+		return localRuntime.Native.Mouse.values;
+	}
+
+	var NS = Elm.Native.Signal.make(localRuntime);
+	var Utils = Elm.Native.Utils.make(localRuntime);
+
+	var position = NS.input('Mouse.position', Utils.Tuple2(0, 0));
+
+	var isDown = NS.input('Mouse.isDown', false);
+
+	var clicks = NS.input('Mouse.clicks', Utils.Tuple0);
+
+	var node = localRuntime.isFullscreen()
+		? document
+		: localRuntime.node;
+
+	localRuntime.addListener([clicks.id], node, 'click', function click() {
+		localRuntime.notify(clicks.id, Utils.Tuple0);
+	});
+	localRuntime.addListener([isDown.id], node, 'mousedown', function down() {
+		localRuntime.notify(isDown.id, true);
+	});
+	localRuntime.addListener([isDown.id], node, 'mouseup', function up() {
+		localRuntime.notify(isDown.id, false);
+	});
+	localRuntime.addListener([position.id], node, 'mousemove', function move(e) {
+		localRuntime.notify(position.id, Utils.getXY(e));
+	});
+
+	return localRuntime.Native.Mouse.values = {
+		position: position,
+		isDown: isDown,
+		clicks: clicks
+	};
+};
+
+Elm.Mouse = Elm.Mouse || {};
+Elm.Mouse.make = function (_elm) {
+   "use strict";
+   _elm.Mouse = _elm.Mouse || {};
+   if (_elm.Mouse.values) return _elm.Mouse.values;
+   var _U = Elm.Native.Utils.make(_elm),$Basics = Elm.Basics.make(_elm),$Native$Mouse = Elm.Native.Mouse.make(_elm),$Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var clicks = $Native$Mouse.clicks;
+   var isDown = $Native$Mouse.isDown;
+   var position = $Native$Mouse.position;
+   var x = A2($Signal.map,$Basics.fst,position);
+   var y = A2($Signal.map,$Basics.snd,position);
+   return _elm.Mouse.values = {_op: _op,position: position,x: x,y: y,isDown: isDown,clicks: clicks};
+};
+Elm.Native = Elm.Native || {};
 Elm.Native.Window = {};
 Elm.Native.Window.make = function make(localRuntime) {
 	localRuntime.Native = localRuntime.Native || {};
@@ -10875,24 +10932,6 @@ Elm.Html.Events.make = function (_elm) {
                                     ,Options: Options};
 };
 Elm.App = Elm.App || {};
-Elm.App.Example = Elm.App.Example || {};
-Elm.App.Example.make = function (_elm) {
-   "use strict";
-   _elm.App = _elm.App || {};
-   _elm.App.Example = _elm.App.Example || {};
-   if (_elm.App.Example.values) return _elm.App.Example.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var _op = {};
-   var foo = "foo";
-   return _elm.App.Example.values = {_op: _op,foo: foo};
-};
-Elm.App = Elm.App || {};
 Elm.App.Model = Elm.App.Model || {};
 Elm.App.Model.make = function (_elm) {
    "use strict";
@@ -10908,10 +10947,10 @@ Elm.App.Model.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var initialSubModel = {count: 0};
+   var initialSubModel = {count: 0,mousePosition: {ctor: "_Tuple2",_0: 0,_1: 0}};
    var initialModel = {subModels: $Array.fromList(_U.list([initialSubModel])),windowDimensions: {ctor: "_Tuple2",_0: 0,_1: 0}};
    var Model = F2(function (a,b) {    return {subModels: a,windowDimensions: b};});
-   var SubModel = function (a) {    return {count: a};};
+   var SubModel = F2(function (a,b) {    return {count: a,mousePosition: b};});
    return _elm.App.Model.values = {_op: _op,SubModel: SubModel,Model: Model,initialSubModel: initialSubModel,initialModel: initialModel};
 };
 Elm.Utils = Elm.Utils || {};
@@ -10952,39 +10991,51 @@ Elm.App.Update.make = function (_elm) {
    $Task = Elm.Task.make(_elm),
    $Utils = Elm.Utils.make(_elm);
    var _op = {};
-   var getPositionMailbox = $Signal.mailbox("");
    var NoOp = {ctor: "NoOp"};
-   var init = {ctor: "_Tuple2",_0: $App$Model.initialModel,_1: $Effects.tick(function (_p0) {    return NoOp;})};
+   var delayedAction = F3(function (action,subModels,index) {
+      return $Effects.task(A2($Task.andThen,
+      $Task.sleep(2000 * $Utils.subViewDecay(index)),
+      function (_p0) {
+         return _U.eq(index + 1,$Array.length(subModels)) ? $Task.succeed(NoOp) : $Task.succeed(action);
+      }));
+   });
+   var init = {ctor: "_Tuple2",_0: $App$Model.initialModel,_1: $Effects.tick(function (_p1) {    return NoOp;})};
    var AddSubView = {ctor: "AddSubView"};
+   var SetMousePosition = F2(function (a,b) {    return {ctor: "SetMousePosition",_0: a,_1: b};});
    var SetWindowDimensions = function (a) {    return {ctor: "SetWindowDimensions",_0: a};};
    var Increment = function (a) {    return {ctor: "Increment",_0: a};};
    var update = F2(function (action,model) {
-      var _p1 = action;
-      switch (_p1.ctor)
+      var _p2 = action;
+      switch (_p2.ctor)
       {case "AddSubView": var latestSubModel = A2($Maybe.withDefault,$App$Model.initialSubModel,$Utils.last(model.subModels));
-           return {ctor: "_Tuple2",_0: _U.update(model,{subModels: A2($Array.push,latestSubModel,model.subModels)}),_1: $Effects.none};
-         case "Increment": var _p3 = _p1._0;
-           var incrementNext = $Effects.task(A2($Task.andThen,
-           $Task.sleep(2000 * $Utils.subViewDecay(_p3)),
-           function (_p2) {
-              return _U.eq(_p3 + 1,$Array.length(model.subModels)) ? $Task.succeed(NoOp) : $Task.succeed(Increment(_p3 + 1));
-           }));
-           var newCount = A2(F2(function (x,y) {    return x + y;}),
-           1,
-           A2($Maybe.withDefault,0,A2($Maybe.map,function (_) {    return _.count;},A2($Array.get,_p3,model.subModels))));
-           var newSubModels = A3($Array.set,_p3,{count: newCount},model.subModels);
+           var newSubModels = A2($Array.push,latestSubModel,model.subModels);
+           return {ctor: "_Tuple2",_0: _U.update(model,{subModels: newSubModels}),_1: $Effects.none};
+         case "Increment": var _p3 = _p2._0;
+           var incrementNext = A3(delayedAction,Increment(_p3 + 1),model.subModels,_p3);
+           var currentSubModel = A2($Maybe.withDefault,$App$Model.initialSubModel,A2($Array.get,_p3,model.subModels));
+           var newSubModel = _U.update(currentSubModel,{count: currentSubModel.count + 1});
+           var newSubModels = A3($Array.set,_p3,newSubModel,model.subModels);
            return {ctor: "_Tuple2",_0: _U.update(model,{subModels: newSubModels}),_1: incrementNext};
          case "SetWindowDimensions": return {ctor: "_Tuple2"
-                                            ,_0: _U.update(model,{windowDimensions: {ctor: "_Tuple2",_0: _p1._0._0,_1: _p1._0._1}})
+                                            ,_0: _U.update(model,{windowDimensions: {ctor: "_Tuple2",_0: _p2._0._0,_1: _p2._0._1}})
                                             ,_1: $Effects.none};
+         case "SetMousePosition": var _p6 = _p2._1._1;
+           var _p5 = _p2._1._0;
+           var _p4 = _p2._0;
+           var setMousePositionOnNext = A3(delayedAction,A2(SetMousePosition,_p4 + 1,{ctor: "_Tuple2",_0: _p5,_1: _p6}),model.subModels,_p4);
+           var currentSubModel = A2($Maybe.withDefault,$App$Model.initialSubModel,A2($Array.get,_p4,model.subModels));
+           var newSubModel = _U.update(currentSubModel,{mousePosition: {ctor: "_Tuple2",_0: _p5,_1: _p6}});
+           var newSubModels = A3($Array.set,_p4,newSubModel,model.subModels);
+           return {ctor: "_Tuple2",_0: _U.update(model,{subModels: newSubModels}),_1: setMousePositionOnNext};
          default: return {ctor: "_Tuple2",_0: model,_1: $Effects.none};}
    });
    return _elm.App.Update.values = {_op: _op
                                    ,Increment: Increment
                                    ,SetWindowDimensions: SetWindowDimensions
+                                   ,SetMousePosition: SetMousePosition
                                    ,AddSubView: AddSubView
                                    ,NoOp: NoOp
-                                   ,getPositionMailbox: getPositionMailbox
+                                   ,delayedAction: delayedAction
                                    ,update: update
                                    ,init: init};
 };
@@ -11014,15 +11065,50 @@ Elm.App.View.make = function (_elm) {
       var subViewWidth = function (_p0) {
          return A3($Basics.flip,F2(function (x,y) {    return A2($Basics._op["++"],x,y);}),"px",$Basics.toString(_p0));
       }(A2(F2(function (x,y) {    return x * y;}),$Utils.subViewDecay(index),$Basics.toFloat($Basics.fst(model.windowDimensions))));
-      var appendEm = function (_p1) {    return A3($Basics.flip,F2(function (x,y) {    return A2($Basics._op["++"],x,y);}),"em",$Basics.toString(_p1));};
-      var incrementButton = A2($Html.a,_U.list([A2($Html$Events.onClick,address,$App$Update.Increment(index))]),_U.list([$Html.text("Increment")]));
-      var addSubViewButton = A2($Html.a,_U.list([A2($Html$Events.onClick,address,$App$Update.AddSubView)]),_U.list([$Html.text("Add Counter")]));
+      var mouseOffset = 5;
+      var incrementButton = A2($Html.a,
+      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "border",_1: "1px black solid"}]))
+              ,A2($Html$Events.onClick,address,$App$Update.Increment(index))]),
+      _U.list([$Html.text("Increment")]));
+      var addSubViewButton = A2($Html.a,
+      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "border",_1: "1px black solid"}]))
+              ,A2($Html$Events.onClick,address,$App$Update.AddSubView)]),
+      _U.list([$Html.text("Add Counter")]));
+      var decay = $Utils.subViewDecay(index);
       var fontProportion = 1 / 20;
-      var fontSize = $Basics.toFloat($Basics.snd(model.windowDimensions)) * fontProportion * $Utils.subViewDecay(index);
-      var subViewHeight = function (_p2) {
-         return A3($Basics.flip,F2(function (x,y) {    return A2($Basics._op["++"],x,y);}),"em",$Basics.toString(_p2));
+      var fontSize = $Basics.toFloat($Basics.snd(model.windowDimensions)) * fontProportion * decay;
+      var pointerBorder = A2($Basics._op["++"],$Basics.toString(fontSize / 3),"px green solid");
+      var subViewHeight = function (_p1) {
+         return A3($Basics.flip,F2(function (x,y) {    return A2($Basics._op["++"],x,y);}),"em",$Basics.toString(_p1));
       }(1 / fontProportion);
       var subModel = A2($Maybe.withDefault,$App$Model.initialSubModel,A2($Array.get,index,model.subModels));
+      var mouseLeftBase = $Basics.toFloat($Basics.fst(model.windowDimensions)) - $Basics.toFloat($Basics.fst(subModel.mousePosition)) - mouseOffset;
+      var mouseLeft = A3($Basics.flip,F2(function (x,y) {    return A2($Basics._op["++"],x,y);}),"px",$Basics.toString(mouseLeftBase * decay));
+      var mouseTopBase = $Basics.toFloat($Basics.snd(model.windowDimensions)) - $Basics.toFloat($Basics.snd(subModel.mousePosition)) - mouseOffset;
+      var mouseTop = A3($Basics.flip,F2(function (x,y) {    return A2($Basics._op["++"],x,y);}),"px",$Basics.toString(mouseTopBase * decay));
+      var defaultSubViewContents = _U.list([addSubViewButton
+                                           ,A2($Html.br,_U.list([]),_U.list([]))
+                                           ,$Html.text($Basics.toString(subModel.count))
+                                           ,incrementButton]);
+      var zIndexStyle = {ctor: "_Tuple2",_0: "z-index",_1: $Basics.toString(10 * index)};
+      var mouseTracker = A2($Html.div,
+      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "width",_1: "1px"}
+                                              ,{ctor: "_Tuple2",_0: "height",_1: "1px"}
+                                              ,{ctor: "_Tuple2",_0: "position",_1: "absolute"}
+                                              ,{ctor: "_Tuple2",_0: "bottom",_1: mouseTop}
+                                              ,{ctor: "_Tuple2",_0: "right",_1: mouseLeft}
+                                              ,zIndexStyle]))]),
+      _U.list([A2($Html.div,
+      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "border-radius",_1: "100%"}
+                                              ,{ctor: "_Tuple2",_0: "border",_1: pointerBorder}
+                                              ,{ctor: "_Tuple2",_0: "width",_1: "1px"}
+                                              ,{ctor: "_Tuple2",_0: "height",_1: "1px"}
+                                              ,zIndexStyle]))]),
+      _U.list([]))]));
+      var subViewContents = _U.cmp(mouseTopBase,Math.pow(mouseOffset,2)) > 0 && (_U.cmp(mouseLeftBase,
+      Math.pow(mouseOffset,2) * mouseOffset) > 0 && !_U.eq(subModel.mousePosition,{ctor: "_Tuple2",_0: 0,_1: 0})) ? A2($Basics._op["++"],
+      defaultSubViewContents,
+      _U.list([mouseTracker])) : defaultSubViewContents;
       return A2($Html.div,
       _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "width",_1: subViewWidth}
                                               ,{ctor: "_Tuple2",_0: "position",_1: "absolute"}
@@ -11031,11 +11117,13 @@ Elm.App.View.make = function (_elm) {
                                               ,{ctor: "_Tuple2",_0: "height",_1: subViewHeight}
                                               ,{ctor: "_Tuple2",_0: "font-size",_1: A2($Basics._op["++"],$Basics.toString(fontSize),"px")}
                                               ,{ctor: "_Tuple2",_0: "margin",_1: "0 auto"}
-                                              ,{ctor: "_Tuple2",_0: "border",_1: "1px solid black"}]))]),
-      _U.list([addSubViewButton,A2($Html.br,_U.list([]),_U.list([])),$Html.text($Basics.toString(subModel.count)),incrementButton]));
+                                              ,{ctor: "_Tuple2",_0: "border",_1: "1px solid black"}
+                                              ,{ctor: "_Tuple2",_0: "background-color",_1: "white"}
+                                              ,zIndexStyle]))]),
+      subViewContents);
    });
    var view = F2(function (address,model) {
-      var subViews = $Array.toList(A2($Array.indexedMap,F2(function (index,_p3) {    return A3(subView,address,index,model);}),model.subModels));
+      var subViews = $Array.toList(A2($Array.indexedMap,F2(function (index,_p2) {    return A3(subView,address,index,model);}),model.subModels));
       return A2($Html.div,_U.list([]),subViews);
    });
    return _elm.App.View.values = {_op: _op,subView: subView,view: view};
@@ -11071,21 +11159,20 @@ Elm.Start.make = function (_elm) {
       var messages = $Signal.mailbox(_U.list([]));
       var singleton = function (action) {    return _U.list([action]);};
       var address = A2($Signal.forwardTo,messages.address,singleton);
+      var inputsByInit = F2(function (init,inputs) {
+         return A2($List.map,
+         $Signal.map(function (_p7) {    return singleton(A2(F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),init,_p7));}),
+         inputs);
+      });
       var allInputs = A3($List.foldl,
       $Signal$Extra.fairMerge($List.append),
       A2($Signal.map,$List.map(F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};})(false)),messages.signal),
-      A2($Basics._op["++"],
-      A2($List.map,
-      $Signal.map(function (_p7) {    return singleton(A2(F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),false,_p7));}),
-      config.inputs),
-      A2($List.map,
-      $Signal.map(function (_p8) {    return singleton(A2(F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),true,_p8));}),
-      config.inputsWithInit)));
+      A2($Basics._op["++"],A2(inputsByInit,false,config.inputs),A2(inputsByInit,true,config.inputsWithInit)));
       var effectsAndModel = A3($Signal$Extra.foldp$,update,updateStart,allInputs);
       var model = A2($Signal.map,$Basics.fst,effectsAndModel);
       return {html: A2($Signal.map,config.view(address),model)
              ,model: model
-             ,tasks: A2($Signal.map,function (_p9) {    return A2($Effects.toTask,messages.address,$Basics.snd(_p9));},effectsAndModel)};
+             ,tasks: A2($Signal.map,function (_p8) {    return A2($Effects.toTask,messages.address,$Basics.snd(_p8));},effectsAndModel)};
    };
    var App = F3(function (a,b,c) {    return {html: a,model: b,tasks: c};});
    var Config = F5(function (a,b,c,d,e) {    return {init: a,update: b,view: c,inputs: d,inputsWithInit: e};});
@@ -11104,6 +11191,7 @@ Elm.Main.make = function (_elm) {
    $Effects = Elm.Effects.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
+   $Mouse = Elm.Mouse.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $Start = Elm.Start.make(_elm),
@@ -11114,7 +11202,12 @@ Elm.Main.make = function (_elm) {
                           ,update: $App$Update.update
                           ,view: $App$View.view
                           ,inputs: _U.list([])
-                          ,inputsWithInit: _U.list([A2($Signal.map,$App$Update.SetWindowDimensions,$Window.dimensions)])});
+                          ,inputsWithInit: _U.list([A2($Signal.map,$App$Update.SetWindowDimensions,$Window.dimensions)
+                                                   ,A2($Signal.map,
+                                                   function (position) {
+                                                      return A2($App$Update.SetMousePosition,0,position);
+                                                   },
+                                                   $Mouse.position)])});
    var main = app.html;
    var worker = Elm.Native.Task.make(_elm).performSignal("worker",app.tasks);
    return _elm.Main.values = {_op: _op,app: app,main: main};

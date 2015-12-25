@@ -1,14 +1,21 @@
 {
   "name": "mirror-world-elm",
   "version": "1.0.0",
-  "description": "",
+  "description": "See your actions played back",
   "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/maxgurewitz/mirror-world-elm"
+  },
   "scripts": {
-    "start": "elm-server src/elm/Main.elm --output assets/js/elm.js --watch assets --start-path html/index.html"
+    "start": "elm-server src/elm/Main.elm --output assets/js/elm.js --watch assets --start-path html/index.html",
+    "deploy": "gh-pages -d assets"
   },
   "author": "Max Gurewitz",
   "license": "MIT",
   "devDependencies": {
-    "elm-server": "0.2.0"
+    "dot": "^1.0.3",
+    "elm-server": "0.2.0",
+    "gh-pages": "^0.8.0"
   }
 }
