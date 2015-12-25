@@ -9,7 +9,8 @@
   },
   "scripts": {
     "start": "elm-server src/elm/Main.elm --output assets/js/elm.js --watch assets --start-path index.html",
-    "deploy": "gh-pages -d assets"
+    "deploy": "gh-pages -d assets",
+    "open": "open 'http://maxgurewitz.github.io/mirror-world-elm/'"
   },
   "author": "Max Gurewitz",
   "license": "MIT",
