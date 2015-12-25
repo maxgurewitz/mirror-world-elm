@@ -8,14 +8,12 @@
     "url": "https://github.com/maxgurewitz/mirror-world-elm"
   },
   "scripts": {
-    "start": "elm-server src/elm/Main.elm --output assets/js/elm.js --watch assets --start-path html/index.html",
-    "deploy": "gh-pages -d assets",
-    "template": "node scripts/template"
+    "start": "elm-server src/elm/Main.elm --output assets/js/elm.js --watch assets --start-path index.html",
+    "deploy": "gh-pages -d assets"
   },
   "author": "Max Gurewitz",
   "license": "MIT",
   "devDependencies": {
-    "dot": "^1.0.3",
     "elm-server": "0.2.0",
     "gh-pages": "^0.8.0"
   }
