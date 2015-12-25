@@ -11081,9 +11081,7 @@ Elm.App.View.make = function (_elm) {
       var primaryShadowDepth = toPx(6 * decay);
       var primaryShadowBlur = toPx(24 * decay);
       var primaryShadowDepths = A2($String.join," ",_U.list(["0","0",primaryShadowBlur,primaryShadowDepth]));
-      var boxShadow = A2($Utils.prepend,
-      " rgba(0, 0, 0, 0.19)",
-      A2($Utils.prepend,secondaryShadowDepths,A2($Utils.prepend," rgba(0, 0, 0, 0.2), ",primaryShadowDepths)));
+      var boxShadow = A2($String.join,"",_U.list(["inset ",primaryShadowDepths," rgba(0, 0, 0, 0.2), ","inset ",secondaryShadowDepths," rgba(0, 0, 0, 0.19)"]));
       return {ctor: "_Tuple2",_0: "box-shadow",_1: boxShadow};
    };
    var propIfFirstSubView = F3(function (attribute,defaultAttributes,index) {
