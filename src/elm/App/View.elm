@@ -2,13 +2,23 @@ module App.View where
 
 import Html exposing (..)
 import Html.Events exposing (onClick)
-import Html.Attributes exposing (style)
+import Html.Attributes as Attributes exposing (style)
 import Signal
 import App.Update as Update exposing (Action)
 import App.Model exposing (Model, SubModel, initialSubModel)
 import Array
 import Debug
 import Utils
+
+
+mouseOffset = 5
+fontProportion = 1 / 20
+
+propIfFirstSubView : Attribute -> List Attribute -> Int -> List Attribute
+propIfFirstSubView attribute defaultAttributes index =
+  if index == 0
+  then (attribute :: defaultAttributes)
+  else defaultAttributes
 
 subView : Signal.Address Action -> Int -> Model -> Html
 subView address index model =
@@ -18,32 +28,31 @@ subView address index model =
       Array.get index model.subModels
         |> Maybe.withDefault initialSubModel
 
-    fontProportion = 1 / 20
     decay = Utils.subViewDecay index
     fontSize =
       (snd model.windowDimensions |> toFloat) * fontProportion * decay
 
     addSubViewButton =
       a
-        [ style
-            [ ("border", "1px black solid") ]
-        , onClick address Update.AddSubView
-        ]
+        (propIfFirstSubView
+          (onClick address Update.AddSubView)
+          [ style [ ("border", "1px black solid") ] ]
+          index
+        )
         [ text "Add Counter" ]
 
     incrementButton =
       a
-        [ style
-          [ ("border", "1px black solid") ]
-        , onClick address (Update.SubViewAction index Update.Increment)
-        ]
+        (propIfFirstSubView
+          (onClick address (Update.SubViewAction index Update.Increment))
+          [ style [ ("border", "1px black solid") ] ]
+          index
+        )
         [ text "Increment" ]
 
     subViewHeight =
       1 / fontProportion
       |> toString >> (flip (++)) "em"
-
-    mouseOffset = 5
 
     mouseLeftBase = ((fst model.windowDimensions |> toFloat) - (fst subModel.mousePosition |> toFloat) - mouseOffset)
     mouseLeft =

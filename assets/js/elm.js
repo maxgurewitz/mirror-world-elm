@@ -11071,26 +11071,33 @@ Elm.App.View.make = function (_elm) {
    $Signal = Elm.Signal.make(_elm),
    $Utils = Elm.Utils.make(_elm);
    var _op = {};
+   var propIfFirstSubView = F3(function (attribute,defaultAttributes,index) {
+      return _U.eq(index,0) ? A2($List._op["::"],attribute,defaultAttributes) : defaultAttributes;
+   });
+   var fontProportion = 1 / 20;
+   var mouseOffset = 5;
    var subView = F3(function (address,index,model) {
       var subViewWidth = function (_p0) {
          return A3($Basics.flip,F2(function (x,y) {    return A2($Basics._op["++"],x,y);}),"px",$Basics.toString(_p0));
       }(A2(F2(function (x,y) {    return x * y;}),$Utils.subViewDecay(index),$Basics.toFloat($Basics.fst(model.windowDimensions))));
-      var mouseOffset = 5;
-      var incrementButton = A2($Html.a,
-      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "border",_1: "1px black solid"}]))
-              ,A2($Html$Events.onClick,address,A2($App$Update.SubViewAction,index,$App$Update.Increment))]),
-      _U.list([$Html.text("Increment")]));
-      var addSubViewButton = A2($Html.a,
-      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "border",_1: "1px black solid"}]))
-              ,A2($Html$Events.onClick,address,$App$Update.AddSubView)]),
-      _U.list([$Html.text("Add Counter")]));
-      var decay = $Utils.subViewDecay(index);
-      var fontProportion = 1 / 20;
-      var fontSize = $Basics.toFloat($Basics.snd(model.windowDimensions)) * fontProportion * decay;
-      var pointerBorder = A2($Basics._op["++"],$Basics.toString(fontSize / 3),"px green solid");
       var subViewHeight = function (_p1) {
          return A3($Basics.flip,F2(function (x,y) {    return A2($Basics._op["++"],x,y);}),"em",$Basics.toString(_p1));
       }(1 / fontProportion);
+      var incrementButton = A2($Html.a,
+      A3(propIfFirstSubView,
+      A2($Html$Events.onClick,address,A2($App$Update.SubViewAction,index,$App$Update.Increment)),
+      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "border",_1: "1px black solid"}]))]),
+      index),
+      _U.list([$Html.text("Increment")]));
+      var addSubViewButton = A2($Html.a,
+      A3(propIfFirstSubView,
+      A2($Html$Events.onClick,address,$App$Update.AddSubView),
+      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "border",_1: "1px black solid"}]))]),
+      index),
+      _U.list([$Html.text("Add Counter")]));
+      var decay = $Utils.subViewDecay(index);
+      var fontSize = $Basics.toFloat($Basics.snd(model.windowDimensions)) * fontProportion * decay;
+      var pointerBorder = A2($Basics._op["++"],$Basics.toString(fontSize / 3),"px green solid");
       var subModel = A2($Maybe.withDefault,$App$Model.initialSubModel,A2($Array.get,index,model.subModels));
       var mouseLeftBase = $Basics.toFloat($Basics.fst(model.windowDimensions)) - $Basics.toFloat($Basics.fst(subModel.mousePosition)) - mouseOffset;
       var mouseLeft = A3($Basics.flip,F2(function (x,y) {    return A2($Basics._op["++"],x,y);}),"px",$Basics.toString(mouseLeftBase * decay));
@@ -11136,7 +11143,12 @@ Elm.App.View.make = function (_elm) {
       var subViews = $Array.toList(A2($Array.indexedMap,F2(function (index,_p2) {    return A3(subView,address,index,model);}),model.subModels));
       return A2($Html.div,_U.list([]),subViews);
    });
-   return _elm.App.View.values = {_op: _op,subView: subView,view: view};
+   return _elm.App.View.values = {_op: _op
+                                 ,mouseOffset: mouseOffset
+                                 ,fontProportion: fontProportion
+                                 ,propIfFirstSubView: propIfFirstSubView
+                                 ,subView: subView
+                                 ,view: view};
 };
 Elm.Start = Elm.Start || {};
 Elm.Start.make = function (_elm) {
