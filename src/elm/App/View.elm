@@ -70,13 +70,13 @@ subView address index model =
 
     mouseOffset = pointerBorderSize * 2
 
-    mouseLeftBase = ((fst model.windowDimensions |> toFloat) - (fst subModel.mousePosition |> toFloat) - pointerBorderSize)
+    mouseLeftBase = ((fst model.windowDimensions |> toFloat) - (fst subModel.mousePosition |> toFloat) - pointerBorderSize / decay)
     mouseLeft =
       mouseLeftBase * decay
       |> toString
       |> (flip (++)) "px"
 
-    mouseTopBase = ((snd model.windowDimensions |> toFloat) - (snd subModel.mousePosition |> toFloat) - pointerBorderSize)
+    mouseTopBase = ((snd model.windowDimensions |> toFloat) - (snd subModel.mousePosition |> toFloat) - pointerBorderSize / decay)
     mouseTop =
       mouseTopBase * decay
       |> toString
