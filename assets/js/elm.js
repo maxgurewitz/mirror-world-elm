@@ -11066,6 +11066,7 @@ Elm.App.View.make = function (_elm) {
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
    $Html$Events = Elm.Html.Events.make(_elm),
+   $Json$Encode = Elm.Json.Encode.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
@@ -11104,17 +11105,18 @@ Elm.App.View.make = function (_elm) {
       var mouseTop = toPx(mouseTopBase * decay);
       var zIndex = 10 * index + 5;
       var zIndexStyle = {ctor: "_Tuple2",_0: "z-index",_1: $Basics.toString(zIndex)};
-      var addSubViewButton = A2($Html.a,
+      var addSubViewButton = A2($Html.span,
       A3(propIfFirstSubView,
       A2($Html$Events.onClick,address,$App$Update.AddSubView),
-      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "border",_1: "1px black solid"}
-                                              ,{ctor: "_Tuple2",_0: "position",_1: "relative"}
+      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "position",_1: "relative"}
                                               ,{ctor: "_Tuple2",_0: "-webkit-user-select",_1: "none"}
                                               ,{ctor: "_Tuple2",_0: "-moz-user-select",_1: "none"}
                                               ,{ctor: "_Tuple2",_0: "-ms-user-select",_1: "none"}
-                                              ,zIndexStyle]))]),
+                                              ,zIndexStyle]))
+              ,$Html$Attributes.$class("glyphicon glyphicon-plus")
+              ,A2($Html$Attributes.property,"aria-hidden",$Json$Encode.string("true"))]),
       index),
-      _U.list([$Html.text("Add Counter")]));
+      _U.list([]));
       var incrementButton = A2($Html.a,
       A3(propIfFirstSubView,
       A2($Html$Events.onClick,address,A2($App$Update.SubViewAction,index,$App$Update.Increment)),

@@ -2,8 +2,9 @@ module App.View where
 
 import Html exposing (..)
 import Html.Events exposing (onClick)
-import Html.Attributes as Attributes exposing (style, class)
+import Html.Attributes as Attributes exposing (style, class, property)
 import Signal
+import Json.Encode
 import App.Update as Update exposing (Action)
 import App.Model exposing (Model, SubModel, initialSubModel)
 import Array
@@ -66,21 +67,22 @@ subView address index model =
       (snd model.windowDimensions |> toFloat) * fontProportion * decay
 
     addSubViewButton =
-      a
+      span
         (propIfFirstSubView
           (onClick address Update.AddSubView)
           [ style
-              [ ("border", "1px black solid")
-              , ("position", "relative")
+              [ ("position", "relative")
               , ("-webkit-user-select", "none")
               , ("-moz-user-select", "none")
               , ("-ms-user-select", "none")
               , zIndexStyle
               ]
+          , class "glyphicon glyphicon-plus"
+          , property "aria-hidden" (Json.Encode.string "true")
           ]
           index
         )
-        [ text "Add Counter" ]
+        []
 
     incrementButton =
       a
