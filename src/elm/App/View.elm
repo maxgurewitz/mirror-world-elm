@@ -23,7 +23,8 @@ propIfFirstSubView attribute defaultAttributes index =
 toPx : Float -> String
 toPx number = number |> toString |> Utils.prepend "px"
 
-colorAngularVelocity = 360/10
+colorPeriod = 7
+colorAngularVelocity = 360 / colorPeriod
 
 generateColor : Int -> String
 generateColor index =
@@ -100,7 +101,7 @@ subView address index model =
         []
 
     incrementButton =
-      a
+      span
         (propIfFirstSubView
           (onClick address (Update.SubViewAction index Update.Increment))
           [ style
@@ -109,11 +110,13 @@ subView address index model =
               , ("-moz-user-select", "none")
               , ("-ms-user-select", "none")
               , zIndexStyle
+              , ("color", generateColor (subModel.count + 2))
               ]
+          , class "glyphicon glyphicon-triangle-right"
           ]
           index
         )
-        [ text ("Increment: " ++ (toString subModel.count)) ]
+        []
 
     subViewHeight =
       1 / fontProportion
@@ -121,7 +124,7 @@ subView address index model =
       |> Utils.prepend "em"
 
     pointerBorderSize = fontSize
-    pointerBorder = toString pointerBorderSize ++ "px green solid"
+    pointerBorder = toString pointerBorderSize ++ "px solid " ++ generateColor (subModel.count + ceiling (colorPeriod / 2))
     pointerBorderDiameter = toString (2 * pointerBorderSize) ++ "px"
 
     mouseOffset = pointerBorderSize * 2

@@ -11074,7 +11074,8 @@ Elm.App.View.make = function (_elm) {
    $String = Elm.String.make(_elm),
    $Utils = Elm.Utils.make(_elm);
    var _op = {};
-   var colorAngularVelocity = 360 / 10;
+   var colorPeriod = 7;
+   var colorAngularVelocity = 360 / colorPeriod;
    var generateColor = function (index) {
       var colorArgs = A2($String.join,", ",_U.list([$Basics.toString(colorAngularVelocity * $Basics.toFloat(index)),"50%","50%"]));
       return A2($Basics._op["++"],"hsl(",A2($Basics._op["++"],colorArgs,")"));
@@ -11099,11 +11100,13 @@ Elm.App.View.make = function (_elm) {
       var decay = $Utils.subViewDecay(index);
       var fontSize = $Basics.toFloat($Basics.snd(model.windowDimensions)) * fontProportion * decay;
       var pointerBorderSize = fontSize;
-      var pointerBorder = A2($Basics._op["++"],$Basics.toString(pointerBorderSize),"px green solid");
       var pointerBorderDiameter = A2($Basics._op["++"],$Basics.toString(2 * pointerBorderSize),"px");
       var mouseOffset = pointerBorderSize * 2;
       var subViewWidth = toPx(A2(F2(function (x,y) {    return x * y;}),decay,$Basics.toFloat($Basics.fst(model.windowDimensions))));
       var subModel = A2($Maybe.withDefault,$App$Model.initialSubModel,A2($Array.get,index,model.subModels));
+      var pointerBorder = A2($Basics._op["++"],
+      $Basics.toString(pointerBorderSize),
+      A2($Basics._op["++"],"px solid ",generateColor(subModel.count + $Basics.ceiling(colorPeriod / 2))));
       var mouseLeftBase = $Basics.toFloat($Basics.fst(model.windowDimensions)) - $Basics.toFloat($Basics.fst(subModel.mousePosition)) - pointerBorderSize / decay;
       var mouseLeft = toPx(mouseLeftBase * decay);
       var mouseTopBase = $Basics.toFloat($Basics.snd(model.windowDimensions)) - $Basics.toFloat($Basics.snd(subModel.mousePosition)) - pointerBorderSize / decay;
@@ -11127,16 +11130,18 @@ Elm.App.View.make = function (_elm) {
               ,A2($Html$Attributes.property,"aria-hidden",$Json$Encode.string("true"))]),
       index),
       _U.list([]));
-      var incrementButton = A2($Html.a,
+      var incrementButton = A2($Html.span,
       A3(propIfFirstSubView,
       A2($Html$Events.onClick,address,A2($App$Update.SubViewAction,index,$App$Update.Increment)),
       _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "position",_1: "relative"}
                                               ,{ctor: "_Tuple2",_0: "-webkit-user-select",_1: "none"}
                                               ,{ctor: "_Tuple2",_0: "-moz-user-select",_1: "none"}
                                               ,{ctor: "_Tuple2",_0: "-ms-user-select",_1: "none"}
-                                              ,zIndexStyle]))]),
+                                              ,zIndexStyle
+                                              ,{ctor: "_Tuple2",_0: "color",_1: generateColor(subModel.count + 2)}]))
+              ,$Html$Attributes.$class("glyphicon glyphicon-triangle-right")]),
       index),
-      _U.list([$Html.text(A2($Basics._op["++"],"Increment: ",$Basics.toString(subModel.count)))]));
+      _U.list([]));
       var defaultSubViewContents = _U.list([addSubViewButton,A2($Html.br,_U.list([]),_U.list([])),incrementButton]);
       var mouseTrackerZIndexStyle = {ctor: "_Tuple2",_0: "z-index",_1: $Basics.toString(zIndex - 2)};
       var mouseTracker = A2($Html.div,
@@ -11174,6 +11179,7 @@ Elm.App.View.make = function (_elm) {
                                  ,fontProportion: fontProportion
                                  ,propIfFirstSubView: propIfFirstSubView
                                  ,toPx: toPx
+                                 ,colorPeriod: colorPeriod
                                  ,colorAngularVelocity: colorAngularVelocity
                                  ,generateColor: generateColor
                                  ,constructBoxShadow: constructBoxShadow
