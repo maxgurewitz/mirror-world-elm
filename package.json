@@ -10,7 +10,7 @@
   "scripts": {
     "start": "elm-server src/elm/Main.elm --output assets/js/elm.js --watch assets --start-path index.html",
     "deploy": "gh-pages -d assets",
-    "compress": "uglifyjs assets/js/elm.js --compress --mangle --output assets/js/elm.js --warnings false",
+    "compress": "uglifyjs assets/js/elm.js --compress --mangle --output assets/js/elm.js",
     "open": "open 'http://maxgurewitz.github.io/mirror-world-elm/'"
   },
   "author": "Max Gurewitz",

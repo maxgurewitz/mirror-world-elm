@@ -165,16 +165,18 @@ subView address index model =
       |> (*) decay
       |> toPx
 
-    defaultSubViewContents =
-      [ addSubViewButton
-      , br [] []
-      , incrementButton
-      ]
+    controls =
+      div
+        [ style [ ("padding", ".5em") ] ]
+        [ addSubViewButton
+        , br [] []
+        , incrementButton
+        ]
 
     subViewContents =
       if mouseTopBase > 0 && mouseLeftBase > 0 && (subModel.mousePosition /= (0, 0))
-      then defaultSubViewContents ++ [mouseTracker]
-      else defaultSubViewContents
+      then [controls] ++ [mouseTracker]
+      else [controls]
 
     primaryColor = generateColor subModel.count
     secondaryColor = generateColor (subModel.count + 1)
