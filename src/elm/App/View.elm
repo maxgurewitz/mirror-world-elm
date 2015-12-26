@@ -23,6 +23,20 @@ propIfFirstSubView attribute defaultAttributes index =
 toPx : Float -> String
 toPx number = number |> toString |> Utils.prepend "px"
 
+colorAngularVelocity = 360/10
+
+generateColor : Int -> String
+generateColor index =
+  let
+    colorArgs =
+      [ toString (colorAngularVelocity * toFloat index)
+      , "50%"
+      , "50%"
+      ]
+      |> String.join ", "
+  in
+    "hsl(" ++ colorArgs ++ ")"
+
 constructBoxShadow : Float -> (String, String)
 constructBoxShadow decay =
   let
@@ -76,6 +90,7 @@ subView address index model =
               , ("-moz-user-select", "none")
               , ("-ms-user-select", "none")
               , zIndexStyle
+              , ("color", "white")
               ]
           , class "glyphicon glyphicon-plus"
           , property "aria-hidden" (Json.Encode.string "true")
@@ -158,6 +173,18 @@ subView address index model =
       then defaultSubViewContents ++ [mouseTracker]
       else defaultSubViewContents
 
+    primaryColor = generateColor subModel.count
+    secondaryColor = generateColor (subModel.count + 1)
+
+    backgroundImageArgs =
+      [ "to bottom right"
+      , primaryColor
+      , secondaryColor ++ " 70%"
+      ]
+      |> String.join ", "
+
+    backgroundImage = "linear-gradient(" ++ backgroundImageArgs ++ ")"
+
   in
     div
       [ style
@@ -165,11 +192,11 @@ subView address index model =
           , ("position", "absolute")
           , ("bottom", "0")
           , ("right", "0")
+          , ("background-image", backgroundImage)
           , ("height", subViewHeight)
-          , ("font-size", (toString fontSize) ++ "px")
+          , ("font-size",  fontSize |> toPx)
           , constructBoxShadow decay
           , ("margin", "0 auto")
-          , ("background-color", "white")
           , zIndexStyle
           ]
       ]
